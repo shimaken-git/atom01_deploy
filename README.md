@@ -217,6 +217,8 @@ Once everything is ready, run the script to start the software:
 - **Y Button**: Switch between Gamepad Control / cmd_vel Control
 - **LB Button**: Switch policy mode (available in beyondmimic / interrupt modes)
 - **RB Button**: Switch motion sequence (available in beyondmimic mode)
+- **Right Stick**: Control forward, backward, left and right movement
+- **LT/RT**: Control turning (left / right rotation)
 
 ### Service Interface
 
