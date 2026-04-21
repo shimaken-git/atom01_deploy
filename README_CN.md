@@ -209,10 +209,32 @@ motor_zero_offset:
 ./tools/start_robot.sh
 ```
 
+如果需要切换不同的策略模型，可以先修改 `src/inference/launch/inference.launch.py` 中加载的配置文件：
+
+```python
+configs = [
+    os.path.join(
+        get_package_share_directory("inference"),
+        "config",
+        "inference.yaml",
+    ),
+]
+```
+
+将其中的 `inference.yaml` 替换为目标配置文件名即可，例如：
+
+- `inference_amp.yaml`
+- `inference_attn_enc.yaml`
+- `inference_beyondmimic.yaml`
+- `inference_getup.yaml`
+- `inference_interrupt.yaml`
+
+修改完成后，重新运行 `./tools/start_robot.sh`，启动时就会加载对应配置，从而使用不同 policy。
+
 ### 手柄控制
 
-- **A 键**: 使能 / 失能电机
-- **X 键**: 复位电机
+- **X 键**: 使能 / 失能电机
+- **A 键**: 复位电机
 - **B 键**: 开始 / 暂停推理
 - **Y 键**: 切换手柄控制 / cmd_vel指令控制
 - **LB 键**: 切换策略模式（在 beyondmimic / interrupt 模式下可用）

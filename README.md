@@ -209,10 +209,32 @@ Once everything is ready, run the script to start the software:
 ./tools/start_robot.sh
 ```
 
+If you need to switch to a different policy model, first update the config file loaded by `src/inference/launch/inference.launch.py`:
+
+```python
+configs = [
+    os.path.join(
+        get_package_share_directory("inference"),
+        "config",
+        "inference.yaml",
+    ),
+]
+```
+
+Replace `inference.yaml` with the target config filename, for example:
+
+- `inference_amp.yaml`
+- `inference_attn_enc.yaml`
+- `inference_beyondmimic.yaml`
+- `inference_getup.yaml`
+- `inference_interrupt.yaml`
+
+After the change, run `./tools/start_robot.sh` again. The startup process will then load the selected config and use the corresponding policy.
+
 ### Gamepad Control
 
-- **A Button**: Initialize / Deinitialize motors
-- **X Button**: Reset motors
+- **X Button**: Initialize / Deinitialize motors
+- **A Button**: Reset motors
 - **B Button**: Start / Pause inference
 - **Y Button**: Switch between Gamepad Control / cmd_vel Control
 - **LB Button**: Switch policy mode (available in beyondmimic / interrupt modes)
