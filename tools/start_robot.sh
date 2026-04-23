@@ -1,27 +1,27 @@
 #!/bin/bash
 
-# 颜色定义，用于美化输出
+# 顔色の定義，装飾出力用
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
-NC='\033[0m' # 无颜色
+NC='\033[0m' # 無顔色
 
-# 函数：打印成功消息
+# 関数：成功メッセージ
 print_success() {
     echo -e "${GREEN}$1${NC}"
 }
 
-# 函数：打印提示消息
+# 関数：情報メッセージ
 print_info() {
     echo -e "${YELLOW}$1${NC}"
 }
 
-# 函数：打印错误消息
+# 関数：エラーメッセージ
 print_error() {
     echo -e "${RED}$1${NC}"
 }
 
-# 函数：启动组件并检查（先启动ROS节点，再设置实时优先级）
+# 関数：コンポーネントを起動して確認します（最初にROSノードを起動し、次にリアルタイム優先度を設定します）。
 start_component() {
     local session_name=$1
     local launch_cmd=$2
@@ -29,7 +29,7 @@ start_component() {
     local sleep_time=$4
 
     print_info "启动 $session_name ..."
-    # 在screen会话中启动ROS命令，并确保传递DDS配置环境变量
+    # screenセッションでROSコマンドを開始し、DDS構成環境変数が渡されていることを確認してください。
     screen -dmS $session_name bash -c "source install/setup.bash; export RMW_IMPLEMENTATION='$RMW_IMPLEMENTATION'; export RMW_FASTRTPS_USE_QOS_FROM_XML='$RMW_FASTRTPS_USE_QOS_FROM_XML'; export FASTRTPS_DEFAULT_PROFILES_FILE='$FASTRTPS_DEFAULT_PROFILES_FILE'; $launch_cmd; exec bash"
     sleep $sleep_time
 
@@ -40,167 +40,167 @@ start_component() {
     fi
 }
 
-# 函数：清理所有会话
+# 機能: すべてのセッションをクリアする
 cleanup_sessions() {
     screen -S inference_session -X quit 2>/dev/null
     screen -S joy_session -X quit 2>/dev/null
 }
 
-# 函数：详细验证 DDS 配置是否生效
+# 機能：DDS構成が有効かどうかを詳細に検証する。
 verify_dds_effectiveness() {
-    print_info "详细验证 DDS 配置是否生效..."
+    print_info "DDSの設定が有効かどうかを詳細に確認してください。..."
     sleep 2
     
-    # 1. 检查环境变量
-    print_info "检查环境变量..."
+    # 1. 環境変数を確認する
+    print_info "環境変数を確認する..."
     echo "RMW_IMPLEMENTATION: $RMW_IMPLEMENTATION"
     echo "FASTRTPS_DEFAULT_PROFILES_FILE: $FASTRTPS_DEFAULT_PROFILES_FILE"
     
-    # 2. 验证配置文件是否被读取
-    print_info "验证配置文件读取..."
+    # 2. 設定ファイルが正しく読み込まれたことを確認してください。
+    print_info "設定ファイルの読み取りを確認する..."
     if [ -f "$FASTRTPS_DEFAULT_PROFILES_FILE" ]; then
-        print_success "配置文件存在"
+        print_success "設定ファイルが存在する"
         
-        # 检查XML语法
+        # XML構文をチェックする
         if command -v xmllint &> /dev/null; then
             if xmllint --noout "$FASTRTPS_DEFAULT_PROFILES_FILE" 2>/dev/null; then
-                print_success "XML 格式正确"
+                print_success "XML 正常"
             else
-                print_error "XML 格式错误"
+                print_error "XML 異常"
                 xmllint "$FASTRTPS_DEFAULT_PROFILES_FILE"
                 return 1
             fi
         fi
     else
-        print_error "配置文件不存在: $FASTRTPS_DEFAULT_PROFILES_FILE"
+        print_error "設定ファイルが存在しません: $FASTRTPS_DEFAULT_PROFILES_FILE"
         return 1
     fi
     
-    # 3. 检查进程是否使用了 Fast DDS
-    print_info "检查进程 DDS 实现..."
+    # 3. プロセスが使用されているかどうかを確認します Fast DDS
+    print_info "チェックプロセスDDS実装..."
     for node in "inference_node" "joy_node"; do
         local pid=$(pgrep -x "$node" 2>/dev/null)
         if [ -n "$pid" ]; then
-            # 检查进程环境变量
+            # プロセス環境変数を確認する
             local env_file="/proc/$pid/environ"
             if [ -f "$env_file" ]; then
                 if grep -z "FASTRTPS_DEFAULT_PROFILES_FILE" "$env_file" >/dev/null 2>&1; then
-                    print_success "$node 环境变量设置正确"
+                    print_success "$node 環境変数は正しく設定されています"
                 else
-                    print_error "$node 缺少 FASTRTPS_DEFAULT_PROFILES_FILE 环境变量"
+                    print_error "$node 足らない FASTRTPS_DEFAULT_PROFILES_FILE 環境変数"
                 fi
                 
                 if grep -z "RMW_IMPLEMENTATION=rmw_fastrtps_cpp" "$env_file" >/dev/null 2>&1; then
-                    print_success "$node RMW 实现正确"
+                    print_success "$node RMW 正しい結果を達成する"
                 else
-                    print_error "$node RMW 实现不正确"
+                    print_error "$node RMW 不適切な実装"
                 fi
             fi
         fi
     done
     
-    # 4. 检查共享内存传输
-    print_info "检查共享内存传输..."
+    # 4. 共有メモリ転送を確認する
+    print_info "共有メモリ転送を確認する..."
     local shm_files=$(ls /dev/shm/ 2>/dev/null | grep -E "(fastrtps|fast_dds|rmw)" | wc -l)
     if [ "$shm_files" -gt 0 ]; then
-        print_success "共享内存传输活跃 ($shm_files 个文件)"
+        print_success "共有メモリ転送が有効です ($shm_files ファイル)"
     else
-        print_error "共享内存传输未检测到"
+        print_error "共有メモリ転送は検出されませんでした"
     fi
     
-    # 5. 测试 DDS 发现性能
-    print_info "测试 DDS 发现性能..."
+    # 5. DDSのテストによりパフォーマンスが明らかになった
+    print_info "DDSのテストによりパフォーマンスが明らかになった..."
     local start_time=$(date +%s%3N)
     ros2 node list >/dev/null 2>&1
     local end_time=$(date +%s%3N)
     local discovery_time=$((end_time - start_time))
     
     if [ "$discovery_time" -lt 500 ]; then
-        print_success "DDS 发现延迟: ${discovery_time}ms (优秀)"
+        print_success "DDS 発見の遅延: ${discovery_time}ms (素晴らしい)"
     elif [ "$discovery_time" -lt 1000 ]; then
-        print_info "DDS 发现延迟: ${discovery_time}ms (良好)"
+        print_info "DDS 発見の遅延: ${discovery_time}ms (良好)"
     else
-        print_error "DDS 发现延迟: ${discovery_time}ms (较慢)"
+        print_error "DDS 発見の遅延: ${discovery_time}ms (もっとゆっくり)"
     fi
 }
 
-# 切换到脚本目录
+# スクリプトディレクトリに切り替える
 cd "$(dirname "$0")"
 cd ..
 
-# 设置 DDS 配置文件
+# DDS構成ファイルを構成する
 export RMW_IMPLEMENTATION=rmw_fastrtps_cpp
 export RMW_FASTRTPS_USE_QOS_FROM_XML=1
 export FASTRTPS_DEFAULT_PROFILES_FILE="$(pwd)/assets/rt_fastdds_profile.xml"
-print_info "设置 DDS 配置文件: $FASTRTPS_DEFAULT_PROFILES_FILE"
+print_info "DDS構成ファイルを構成する: $FASTRTPS_DEFAULT_PROFILES_FILE"
 
-# 检查 DDS 配置文件是否存在
+# DDS構成ファイルが存在するかどうかを確認してください。
 if [ ! -f "$FASTRTPS_DEFAULT_PROFILES_FILE" ]; then
-    print_error "DDS 配置文件不存在: $FASTRTPS_DEFAULT_PROFILES_FILE"
+    print_error "DDS設定ファイルが存在しません。: $FASTRTPS_DEFAULT_PROFILES_FILE"
     exit 1
 fi
 
-# 检查是否已source setup文件
+# セットアップファイルが読み込まれているかどうかを確認してください。
 if [ -z "$AMENT_PREFIX_PATH" ]; then
-    print_info "未检测到ROS 2环境，正在执行source..."
+    print_info "ROS 2環境が検出されませんでした。ソースを実行します。..."
     source /opt/ros/humble/setup.bash || {
-        print_error "无法source /opt/ros/humble/setup.bash，请检查路径是否正确"
+        print_error "できません。source /opt/ros/humble/setup.bash，パスが正しいかどうか確認してください。"
         exit 1
     }
 fi
 
-# 检查 colcon 和 ros2
+# colconとros2をチェックしてください
 if ! command -v colcon &> /dev/null; then
-    print_error "colcon 未安装，请安装 ROS 2 开发工具"
+    print_error "Colconがインストールされていません。ROS 2開発ツールをインストールしてください。"
     exit 1
 fi
 if ! command -v ros2 &> /dev/null; then
-    print_error "ros2 未安装"
+    print_error "ROS2がインストールされていません"
     exit 1
 fi
 
-# 检查是否已安装screen
+# screenインストール確認
 if ! command -v screen &> /dev/null; then
-    print_error "screen 未安装"
+    print_error "screenがインストールされていません"
     exit 1
 fi
 
-# 编译推理包
-print_info "编译推理包..."
+# 推論パッケージをコンパイルする
+print_info "推論パッケージをコンパイルする..."
 colcon build --symlink-install || {
-    print_error "推理包编译失败"
+    print_error "推論パッケージのコンパイルに失敗しました"
     exit 1
 }
 source install/setup.bash
 
-# 停止可能正在运行的screen会话
-print_info "停止现有相关screen会话..."
+# 実行中のスクリーンセッションをすべて停止してください。
+print_info "既存の関連スクリーンセッションを停止します..."
 cleanup_sessions
 
 start_component "inference_session" "ros2 launch inference inference.launch.py" "inference_node" 5
 start_component "joy_session" "ros2 run joy joy_node" "joy_node" 2
 
-# 验证节点的 DDS 配置
+# 検証ノードのDDS構成
 verify_dds_effectiveness
 
-# 所有组件启动完成
+# すべてのコンポーネントが起動しました。
 print_success "----------------------------------------"
-print_success "所有组件已在后台成功启动！"
-print_success "使用以下命令查看各组件输出："
-print_success "推理模块: screen -r inference_session"
-print_success "手柄控制: screen -r joy_session"
+print_success "すべてのコンポーネントがバックグラウンドで正常に起動しました！"
+print_success "各コンポーネントの出力を表示するには、次のコマンドを使用します。"
+print_success "推論モジュール: screen -r inference_session"
+print_success "コントローラ制御: screen -r joy_session"
 print_success "----------------------------------------"
-print_info "若要退出某个screen会话，按Ctrl+A然后按D"
-print_info "使用以下命令停止所有组件："
+print_info "スクリーンセッションを終了するには、Ctrl+Aを押してからDを押します。"
+print_info "以下のコマンドを使用して、すべてのコンポーネントを停止します。"
 print_info "screen -S inference_session -X quit"
 print_info "screen -S joy_session -X quit"
 print_success "----------------------------------------"
-print_info "手柄控制说明:"
-print_info "X键: 使能/失能电机"
-print_info "A键: 复位电机"
-print_info "B键: 开始/暂停推理"
-print_info "Y键: 切换手柄控制/cmd_vel指令控制"
-print_info "LB键: 切换策略模式(在beyondmimic/interrupt模式下可用)"
-print_info "RB键: 切换运动序列(在beyondmimic模式下可用)"
-print_info "右摇杆: 控制前后左右移动"
-print_info "LT/RT: 控制转向(左/右旋转)"
+print_info "コントローラ操作手順:"
+print_info "Xボタン: モーターの有効化/無効化"
+print_info "Aボタン: モーターをリセット"
+print_info "Bボタン: 推論の開始/一時停止"
+print_info "Yボタン: ゲームパッド操作とcmd_velコマンド操作を切り替える"
+print_info "LBボタン: ポリシーモードを切り替える（beyond mimic有／割り込みモードで利用可能）"
+print_info "RBボタン: 動作シーケンスを切り替える（beyondMimicモードで利用可能）"
+print_info "右摇杆: 前進、後退、左折、右折を制御する"
+print_info "LT/RT: ステアリング操作（左右回転）"
