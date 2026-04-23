@@ -3,7 +3,8 @@
 	url = https://github.com/Luo1imasi/inference.git
 [submodule "motors"]
 	path = src/motors
-	url = https://github.com/Luo1imasi/motors.git
+	url = https://github.com/shimaken-git/motors.git
+	# url = https://github.com/Luo1imasi/motors.git
 [submodule "imu"]
 	path = src/imu
 	url = https://github.com/Luo1imasi/imu.git

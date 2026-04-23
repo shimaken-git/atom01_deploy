@@ -6,22 +6,22 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # 無顔色
 
-# 関数：成功メッセージ
+# 機能：成功メッセージ
 print_success() {
     echo -e "${GREEN}$1${NC}"
 }
 
-# 関数：情報メッセージ
+# 機能：情報メッセージ
 print_info() {
     echo -e "${YELLOW}$1${NC}"
 }
 
-# 関数：エラーメッセージ
+# 機能：エラーメッセージ
 print_error() {
     echo -e "${RED}$1${NC}"
 }
 
-# 関数：コンポーネントを起動して確認します（最初にROSノードを起動し、次にリアルタイム優先度を設定します）。
+# 機能：コンポーネントを起動して確認します（最初にROSノードを起動し、次にリアルタイム優先度を設定します）。
 start_component() {
     local session_name=$1
     local launch_cmd=$2
