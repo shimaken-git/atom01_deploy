@@ -28,13 +28,13 @@ start_component() {
     local node_name=$3
     local sleep_time=$4
 
-    print_info "启动 $session_name ..."
+    print_info " $session_name 開始..."
     # screenセッションでROSコマンドを開始し、DDS構成環境変数が渡されていることを確認してください。
     screen -dmS $session_name bash -c "source install/setup.bash; export RMW_IMPLEMENTATION='$RMW_IMPLEMENTATION'; export RMW_FASTRTPS_USE_QOS_FROM_XML='$RMW_FASTRTPS_USE_QOS_FROM_XML'; export FASTRTPS_DEFAULT_PROFILES_FILE='$FASTRTPS_DEFAULT_PROFILES_FILE'; $launch_cmd; exec bash"
     sleep $sleep_time
 
     if ! ros2 node list | grep -q "$node_name"; then
-        print_error "$session_name 启动失败！未检测到 $node_name 节点。"
+        print_error "$session_name の開始に失敗しました！ ノード名 $node_name が検出できませんでした。"
         cleanup_sessions
         exit 1
     fi

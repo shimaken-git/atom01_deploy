@@ -34,9 +34,11 @@ def example_can_motor():
         kp = 0.0
         kd = 0.0
         torque = 0.0
-
         for motor in motors:
-            motor.motor_mit_cmd(target_pos, target_vel, kp, kd, torque)
+            print(type(motor), motor.get_motor_id(), motor.get_motor_control_mode())
+        for motor in motors:
+            # motor.motor_mit_cmd(target_pos, target_vel, kp, kd, torque)
+            motor.set_motor_zero()
                 
             # 運動状態を読み取る
             pos = motor.get_motor_pos()

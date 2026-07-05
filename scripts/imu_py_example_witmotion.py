@@ -18,7 +18,7 @@ def example_serial_imu():
     
     print(f"IMU ID: {imu.get_imu_id()}")
     
-    for i in range(1000):
+    for i in range(100000):
         quat = imu.get_quat()
         print(f"quaternion: w={quat[0]:.4f}, x={quat[1]:.4f}, y={quat[2]:.4f}, z={quat[3]:.4f}")
         

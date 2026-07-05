@@ -1,0 +1,11 @@
+motor_id: 
+    [19]
+motor_interface_type: "can"
+motor_interface: ["can0"]
+motor_num: [1]
+motor_type: ["DM", "DM", "DM", "DM", "DM"]
+motor_model: 
+    [0, 0, 0, 0, 0]
+master_id_offset: 16
+motor_zero_offset: 
+    [0.0, 0.0, 0.0, 0.0, 0.0]

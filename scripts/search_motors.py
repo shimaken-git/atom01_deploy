@@ -75,49 +75,30 @@ def calibrate_motor(motor_info: dict) -> bool:
     motor_id = motor_info['motor_id']
     interface = motor_info['interface']
     
-    print(f"\n{'='*50}")
-    print(f"モーター ID: {motor_id} をキャリブレーション (ポート: {interface})")
-    print(f"{'='*50}")
-    
-    print("モーター初期化...")
+    print(f"motor ID: {motor_id} port: {interface}")
+
     motor.init_motor()
     time.sleep(0.3)
     
-    print("MITプロトコルに設定...")
     motor.set_motor_control_mode(motors_py.MotorControlMode.MIT)
     time.sleep(0.1)
     
-    print("\n>>> 手動でゼロ位置に移動させてください <<<")
-    print("ヒント: モーターはダンピングモードになっており、自由に回転できます。")
-    print("操作: [Enter] でゼロ位置の登録 | [SPACE] でスキップ")
     
     zeroed = False
     try:
-        while True:
-            motor.motor_mit_cmd(0.0, 0.0, 0.0, 1.0, 0.0)
-            
-            pos = motor.get_motor_pos()
-            err = motor.get_error_id()
-            print(f"\r現在位置: {pos:+.6f} rad | エラーフラグ: {err} | [Enter]登録 / [SPACE]スキップ", end='', flush=True)
-            
-            key = read_key_nonblocking(0.05)
-            if key == '\r' or key == '\n':  # Enter
-                motor.set_motor_zero()
-                zeroed = True
-                break
-            elif key == ' ':  # Space
-                zeroed = False
-                break
-            elif key == '\x03':  # Ctrl+C
-                raise KeyboardInterrupt
-            
-            time.sleep(0.02)
+        motor.motor_mit_cmd(0.0, 0.0, 0.0, 0.0, 0.0)
+        time.sleep(0.2)
+        pos = motor.get_motor_pos()
+        err = motor.get_error_id()
+        print(f"\rpos: {pos:+.6f} rad | err: {err}")
+        if pos != 0.0:
+            zeroed = True
+        time.sleep(0.02)
     except KeyboardInterrupt:
         print("\n\nユーザーによる中断")
         motor.deinit_motor()
         raise
     
-    print("モーター開放...")
     motor.deinit_motor()
     time.sleep(0.2)
     
@@ -128,10 +109,7 @@ def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     config_path = os.path.join(script_dir, 'config', 'set_zero.yaml')
     
-    print("="*60)
-    print("           モーターゼロ点設定ツール")
-    print("="*60)
-    print(f"\n設定ファイル: {config_path}\n")
+    print(f"\nconfig file: {config_path}\n")
     
     try:
         config = load_config(config_path)
@@ -146,7 +124,7 @@ def main():
     print(f"  - インターフェイス: {config['motor_interface']}")
     print(f"  - モーターモデル: {config['motor_model']}")
     print("\n" + "-"*60)
-    input("キャリブレーションプロセスを開始するには Enterキーを押してください..")
+    input("プロセスを開始するには Enterキーを押してください..")
     print("-"*60)
     
     try:
@@ -157,16 +135,12 @@ def main():
         return 1
     
     try:
-        zeroed_ids = []
-        skipped_ids = []
         for motor_info in motors:
             result = calibrate_motor(motor_info)
             if result:
-                zeroed_ids.append(motor_info['motor_id'])
-                print(f"モーター {motor_info['motor_id']} キャリブレーション完了!")
+                print(f"motor id {motor_info['motor_id']} found!")
             else:
-                skipped_ids.append(motor_info['motor_id'])
-                print(f"モーター {motor_info['motor_id']} スキップ")
+                print(f"motor id {motor_info['motor_id']} not found!")
     except KeyboardInterrupt:
         print("\n\nユーザーによって中断")
         return 1
@@ -174,15 +148,7 @@ def main():
         print(f"\nキャリブレーション処理エラー: {e}")
         return 1
     
-    print("\n" + "="*60)
-    print("         キャリブレーションプロセス完了!")
-    print("="*60)
-    if zeroed_ids:
-        print(f"  ゼロ設定されたモーター: {zeroed_ids}")
-    if skipped_ids:
-        print(f"  スキップしたモーター: {skipped_ids}")
-    
-    print("\nキャリブレーション処理終了")
+    print("\n処理終了")
     return 0
 
 

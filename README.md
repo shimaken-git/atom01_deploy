@@ -5,95 +5,84 @@
 [![Linux platform](https://img.shields.io/badge/platform-linux--x86_64-orange.svg)](https://releases.ubuntu.com/22.04/)
 [![Linux platform](https://img.shields.io/badge/platform-linux--aarch64-orange.svg)](https://releases.ubuntu.com/22.04/)
 
-[English](README.md) | [中文](README_CN.md)
-
 ## Overview
 
-This repository provides a deployment framework using ROS2 as middleware with a modular architecture for seamless customization and extension.
+このリポジトリはOpen-source repository: [https://github.com/Roboparty/atom01_deploy](https://github.com/Roboparty/atom01_deploy)をフォーク元とするATOM01の亜種である自作ロボットのためのリポジトリです。
+このREADMEでは主にオリジナルからの差分について記載します。オリジナルについてはfork元リポジトリを参照してください。
 
-Open-source repository: [https://github.com/Roboparty/atom01_deploy](https://github.com/Roboparty/atom01_deploy)
+**オリジナルからの主な変更点:**
 
-**Maintainer**: Zhihao Liu
-**Contact**: <ZhihaoLiu_hit@163.com>
-
-**Key Features:**
-
-- **Easy to Use**: Provides complete detailed code for learning and allows code modification.
-- **Isolation**: Different functions are implemented by different packages, supporting the addition of custom function packages.
-- **Long-term Support**: This repository will be updated along with the training repository code and will provide long-term support.
+- **アクチュエータの変更**: 下半身はROBSTRIDE製アクチュエータ、上半身はDAMIAO製アクチュエータを採用。アクチュエータのサイズを落とし、ロボット自体のサイズを若干縮小した。肩までの身長が約80cm
+- **関節構造の変更**: 股関節の関節構造を変更、Pitch-Roll-Yaw型に変更。腕については可動域の拡大のため肘関節にオフセットを設けた。
+- **IMUの変更**: IMUにwitmotion製IMUを採用。
 
 ## Controller Connection
 
-The deployment framework has been fully verified on **Orange Pi 5 Plus** and **RDK X5**.
+コントローラは**RDK X5**を使用。
 
-- **Orange Pi 5 Plus**: OS is `Ubuntu 22.04`, kernel version is `5.10`
 - **RDK X5**: OS is `Ubuntu 22.04`, kernel version is `6.1.83`
 
-For controller connection methods and related resources, see [Orange Pi 5 Plus Wiki](http://www.orangepi.cn/orangepiwiki/index.php/Orange_Pi_5_Plus) and [RDK X5 Doc](https://d-robotics.github.io/rdk_doc/Quick_start/hardware_introduction/rdk_x5).
+コントローラの立ち上げについては [RDK X5 Doc](https://d-robotics.github.io/rdk_doc/Quick_start/hardware_introduction/rdk_x5)による。
 
 ## Environment Setup
 
-1. First, install ROS2 Humble. Refer to [ROS Official](https://docs.ros.org/en/humble/Installation.html) for installation.
+環境設定についてはFork元を踏襲しています。Fork元の変更に備えて実施した内容を記録します。
+1. ROS2 Humbleをインストール [ROS Official](https://docs.ros.org/en/humble/Installation.html) 
 
-2. The deployment also depends on libraries such as `ccache`, `fmt`, `spdlog`, `eigen3`, and `screen`. Execute the following instruction on the controller to install:
+2. 以下のライブラリ類をインストール
 
    ```bash
    sudo apt update && sudo apt install -y ccache libfmt-dev libspdlog-dev libeigen3-dev screen
    ```
 
-3. If you want to use gamepad control, also install the ROS2 `joy` package:
+3. joyパッケージはROS2インストール時に一緒に入ったらしい。
 
    ```bash
    sudo apt install -y ros-humble-joy
    ```
 
-4. If you want to use the Python scripts in this repository (such as `scripts/set_zero.py`), also install the required Python dependencies:
+4. Python関連
 
    ```bash
    sudo apt install -y python3-yaml python3-numpy
    ```
 
-5. Next, clone the deployment code:
+5. このリポジトリをクローン　アクチュエータ、IMUがオリジナルと異なっているため、submoduleとなっているmotor, imuリポジトリもforkされたリポジトリを関連付けている。
+
 
    ```bash
-   git clone https://github.com/Roboparty/atom01_deploy.git
+   git clone https://github.com/shimaken-git/atom01_deploy.git
    cd atom01_deploy
    git submodule update --init --recursive
    ```
 
-6. If using Orange Pi 5 Plus, execute the following instructions to install the **5.10 real-time kernel**:
-   
-   > **Note**: For RDK X5, there is no need to perform this step. Please directly flash the image we provide that has the real-time kernel pre-installed.
+6. Orange Pi 5 Plusについてはスキップ
 
-   ```bash
-   cd assets
-   sudo apt install ./*.deb
-   cd ..
-   ```
-
-7. Next, grant the user permission to set real-time priorities:
+7. リアルタイムプライオリティについての設定。fork元通りに実施
 
    ```bash
    sudo nano /etc/security/limits.conf
    ```
 
-   Add the following two lines at the end of the file (**be sure to replace `orangepi` with your actual username**, for example, the default username for RDK X5 is `sunrise`):
+   ファイルの末尾に次の 2 行を追加
 
    ```bash
-   # Allow user 'orangepi' to set real-time priorities
-   orangepi   -   rtprio   98
-   orangepi   -   memlock  unlimited
+   # Allow user 'sunrise' to set real-time priorities
+   sunrise   -   rtprio   98
+   sunrise   -   memlock  unlimited
    ```
 
-   Restart the device to make the configuration take effect, and then verify it through the following command:
+   設定の確認:
 
    ```bash
    ulimit -r
    ```
 
-   > **Tip**: An output of **98** indicates a successful configuration.
+   > **ヒント**: 出力が **98** であれば、設定は正常に完了したことを示します。
 
 ## AP Configuration (Optional)
+
+APについては現状未使用のため、未設定。
 
 To facilitate debugging without an Ethernet cable and monitor, a WiFi Access Point (AP) can be enabled for the controller board. Configuration-related files are in the `tools/create_ap` directory.
 
@@ -148,7 +137,12 @@ Before connecting, please complete the motor ID setup and configure the IMU baud
 
 For the **motor ID**, please refer to the motor ID definition in [RoboParty Roboto Origin Product Installation Manual](https://roboparty.feishu.cn/wiki/Sh5vw7QFZimO5Skxzficro2Pnkf), and use the Damiao host computer tool to set it. For tutorials, please see [Damiao Technology Docs](https://gitee.com/kit-miao/damiao-document).
 
+このリポジトリではRobstride製モーターも合わせて使用しています。下半身はRobstrideモーター、上半身はDamiao製モーター。下半身のモーターについてはRobstrideの設定ツールを使用してID設定を行ってください。
+
 For the **IMU**, we use **`921600` baud rate** and **`500HZ` frequency** by default. How to modify it using the host computer, see the [HiPNUC Product Manual](https://www.hipnuc.com/resource_hi14.html).
+
+このリポジトリではIMUはwitmotion社製IMUを使用しています。通信レート、サンプリング周波数については変更ありません。
+
 > **Tip**: Other baud rates can also be used, but please **ensure the frequency is greater than 200HZ**. If a different baud rate is used, synchronously modify the IMU configuration in `src/inference/config/robot.yaml`.
 
 ## Hardware Connection
@@ -197,6 +191,33 @@ sudo udevadm trigger
 Restart the controller for it to take effect.
 
 The udev rules also include the IMU serial port configuration. If the rules take effect normally, all CAN interfaces should automatically finish configuration and be enabled. You can check the results by entering the `ip a` command on the controller.
+
+## ソフトウェアの変更点
+アクチュエータの変更、IMUの変更、関節構造の変更に伴ったソフトウェアの変更点について記す。
+
+### src/imu/src/imu_driver.cpp
+imuの変更に伴い、witmotionの記述を追加
+### src/imu/src/drivers/witmotion
+witmotionドライバーを追加
+### src/motors/src/motor_driver.cpp
+robstrideドライバー追加
+### src/motors/src/drivers/rob
+robstrideドライバー追加
+### src/protocol/can/socket_can.hpp
+extend frame対応（受信時のkey_extractor_）
+### scripts/config/set_zero.yaml
+motor_typeの混在に伴い、motor_typeをリストにする。  
+motor_modelについては内容変更。
+### scripts/set_zero.py
+motor_typeの混在に伴い、motor_typeをリストにする。  keyword: motortypes
+### inference/include/robot_interface.hpp
+MotorsCfgメンバーのmotor_type_をvectorに変更
+### src/robot_interface.cpp
+MotorsCfgの変更に伴う変更
+### src/inference/src/utils/close_chain_mapping.cpp
+足首構造の変更に伴う変更
+### src/inference/src/ros_interface.cpp
+ゲームコントローラ変更に伴う変更（PS4コントローラ）
 
 ## Software Usage
 

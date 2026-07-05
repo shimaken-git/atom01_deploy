@@ -1,20 +1,29 @@
 #!/usr/bin/env python3
 import motors_py
 import time
+from calc_ankle import calc_ankle_angle
+import numpy as np
+import argparse
+
 
 def example_can_motor():
-    """CANバス経由で接続されたモーターの例"""
-    print("=== CANモーターの例 ===")
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--pitch', default= 0.0)
+    parser.add_argument('--roll', default= 0.0)
+    args = parser.parse_args()
+    print(args.pitch, args.roll)
+
+    print("=== 膝制御のテスト ===")
     motors = []
     try:
-        for i in range(0x13, 0x14):
+        for i in range(0x01, 0x05):
             motors.append(motors_py.MotorDriver.create_motor(
             motor_id=i,
             interface_type="can",
             interface="can0",
-            motor_type="DM",
+            motor_type="ROB",
             motor_model=0,
-            master_id_offset=16,
+            master_id_offset=0,
         ))
         print("モーターが正常に作成されました！")
     except Exception as e:
@@ -29,25 +38,24 @@ def example_can_motor():
         print("\n=== MITモード制御の例 ===")
         motors[0].set_motor_control_mode(motors_py.MotorControlMode.MIT)
         
-        target_pos = 0.0
         target_vel = 0.0
-        kp = 0.0
-        kd = 0.0
+        kp_k = 50.0
+        kd_k = 2.5
+        kp_h = 30.0
+        kd_h = 1.0
         torque = 0.0
 
-        for motor in motors:
-            motor.motor_mit_cmd(target_pos, target_vel, kp, kd, torque)
-                
-            # 運動状態を読み取る
-            pos = motor.get_motor_pos()
-            vel = motor.get_motor_spd()
-            current = motor.get_motor_current()
-            temp = motor.get_motor_temperature()
-            error_id = motor.get_error_id()
-            
-            print(f"位置: {pos:.4f} rad, 速度: {vel:.4f} rad/s, "
-                f"電流: {current:.4f} A, 温度: {temp:.2f}°C, エラーコード: {error_id}")
-            time.sleep(1)
+        da = 0.01
+        angle = 0.0
+        while True:
+            motors[0].motor_mit_cmd(-angle, target_vel, kp_h, kd_h, torque)
+            motors[1].motor_mit_cmd(0.0, target_vel, kp_h, kd_h, torque)
+            motors[2].motor_mit_cmd(0.0, target_vel, kp_h, kd_h, torque)
+            motors[3].motor_mit_cmd(angle, target_vel, kp_k, kd_k, torque)
+            angle += da
+            if angle < -1.5 or angle > 0.1 :
+                da *= -1.0
+            time.sleep(0.003)
     except Exception as e:
         print(f"モーター制御中にエラーが発生しました: {e}")
     finally:

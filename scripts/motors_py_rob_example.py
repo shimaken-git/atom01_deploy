@@ -7,14 +7,14 @@ def example_can_motor():
     print("=== CANモーターの例 ===")
     motors = []
     try:
-        for i in range(0x13, 0x14):
+        for i in range(0x01, 0x0c):
             motors.append(motors_py.MotorDriver.create_motor(
             motor_id=i,
             interface_type="can",
             interface="can0",
-            motor_type="DM",
+            motor_type="ROB",
             motor_model=0,
-            master_id_offset=16,
+            master_id_offset=0,
         ))
         print("モーターが正常に作成されました！")
     except Exception as e:
