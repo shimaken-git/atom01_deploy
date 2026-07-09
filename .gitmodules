@@ -1,6 +1,6 @@
 [submodule "roboparty_inference"]
 	path = src/inference
-	url = https://github.com/shimaken-git/roboparty-inference.git
+	url = https://github.com/shimaken-git/roboparty_inference.git
 [submodule "motors"]
 	path = src/motors
 	url = https://github.com/shimaken-git/motors.git
