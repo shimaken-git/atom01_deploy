@@ -78,7 +78,7 @@ def calibrate_motor(motor_info: dict) -> bool:
     print(f"motor ID: {motor_id} port: {interface}")
 
     motor.init_motor()
-    time.sleep(0.3)
+    time.sleep(0.1)
     
     motor.set_motor_control_mode(motors_py.MotorControlMode.MIT)
     time.sleep(0.1)
@@ -87,7 +87,7 @@ def calibrate_motor(motor_info: dict) -> bool:
     zeroed = False
     try:
         motor.motor_mit_cmd(0.0, 0.0, 0.0, 0.0, 0.0)
-        time.sleep(0.2)
+        time.sleep(0.1)
         pos = motor.get_motor_pos()
         err = motor.get_error_id()
         print(f"\rpos: {pos:+.6f} rad | err: {err}")
@@ -100,7 +100,7 @@ def calibrate_motor(motor_info: dict) -> bool:
         raise
     
     motor.deinit_motor()
-    time.sleep(0.2)
+    time.sleep(0.1)
     
     return zeroed
 
@@ -135,12 +135,16 @@ def main():
         return 1
     
     try:
+        found = []
+        not_fount = []
         for motor_info in motors:
             result = calibrate_motor(motor_info)
             if result:
                 print(f"motor id {motor_info['motor_id']} found!")
+                found.append(motor_info['motor_id'])
             else:
                 print(f"motor id {motor_info['motor_id']} not found!")
+                not_fount.append(motor_info['motor_id'])
     except KeyboardInterrupt:
         print("\n\nユーザーによって中断")
         return 1
@@ -149,6 +153,8 @@ def main():
         return 1
     
     print("\n処理終了")
+    print(f"見つかったモーター: {found}")
+    print(f"見つからなかったモーター: {not_fount}")
     return 0
 
 
