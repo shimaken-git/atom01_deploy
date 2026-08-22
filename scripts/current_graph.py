@@ -7,7 +7,7 @@ df = pd.read_csv("/home/kenji/current.csv", header=None)
 plt.figure(figsize=(14, 8))
 
 for i in range(df.shape[1]):
-    if i == 1:
+    if i == 4 or i==5:
         plt.plot(
             df.index,
             df[i],
@@ -16,7 +16,7 @@ for i in range(df.shape[1]):
             label="M1",
             zorder=3,
         )
-    elif i == 7:
+    elif i == 10 or i==11:
         plt.plot(
             df.index,
             df[i],

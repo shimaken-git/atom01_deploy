@@ -145,21 +145,22 @@ def calc_ankle_angle(ax, ay):
 
     # inside_heel_point = [-0.058, -0.0285, -0.015]
     # outside_heel_point = [-0.058, 0.0285, -0.015]
-    inside_heel_point = [0.0456, 0.0467, -0.008]    #front connector -- lower motor
-    outside_heel_point = [-0.0456, 0.0467, -0.008]    #rear connector -- upper motor
+    front_connector_point = [0.0456, 0.0467, -0.008]    #inside_heel_point front connector -- lower motor
+    rear_connector_point = [-0.0456, 0.0467, -0.008]    #outside_heel_point rear connector -- upper motor
 
-    inside_rotated = rotate_point_xy(
-        point = inside_heel_point,
+    front_rotated = rotate_point_xy(
+        point = front_connector_point,
         ax=ax,
         ay=ay
     )
-    outside_rotated = rotate_point_xy(
-        point = outside_heel_point,
+    rear_rotated = rotate_point_xy(
+        point = rear_connector_point,
         ax=ax,
         ay=ay
     )
 
-    print("回転後:", inside_rotated, outside_rotated)
+    print("回転前:", rear_connector_point, front_connector_point)
+    print("回転後:", rear_rotated, front_rotated)
 
     #inside
     # sphere_radius = 0.102
@@ -170,8 +171,8 @@ def calc_ankle_angle(ax, ay):
     circle_center = [-0.015, 0.0443, 0.0893]    # lower motor
     circle_radius = 0.040
 
-    inside_points = sphere_circle_intersections(
-        inside_rotated,
+    lower_points = sphere_circle_intersections(
+        front_rotated,
         sphere_radius,
         circle_center,
         circle_radius
@@ -182,15 +183,11 @@ def calc_ankle_angle(ax, ay):
     #     print(f"交点{i+1}: {p}")
     #     print(np.arccos((circle_center[0] - p[0]) / circle_radius), np.arcsin((circle_center[2] - p[2]) / circle_radius))
 
-    if len(inside_points) == 0:
+    if len(lower_points) == 0:
         return []
     
-    p = inside_points[1]
-    inside_angle = -np.arcsin((p[2] - circle_center[2]) / circle_radius)
-    # if inside_angle < np.pi * 0.5:
-    #     inside_angle += np.pi
-    # elif inside_angle > np.pi * 0.5:
-    #     inside_angle -= np.pi
+    p = lower_points[1]
+    lower_angle = -np.arcsin((p[2] - circle_center[2]) / circle_radius)
 
     #outside
     # sphere_radius = 0.172
@@ -201,8 +198,8 @@ def calc_ankle_angle(ax, ay):
     circle_center = [-0.015, 0.0443, 0.1543]   # upper motor
     circle_radius = 0.040
 
-    outside_points = sphere_circle_intersections(
-        outside_rotated,
+    upper_points = sphere_circle_intersections(
+        rear_rotated,
         sphere_radius,
         circle_center,
         circle_radius
@@ -213,20 +210,20 @@ def calc_ankle_angle(ax, ay):
     #     print(f"交点{i+1}: {p}")
     #     print(np.arccos((circle_center[0] - p[0]) / circle_radius), np.arcsin((circle_center[2] - p[2]) / circle_radius))
 
-    if len(outside_points) == 0:
+    if len(upper_points) == 0:
         return []
-    p = outside_points[0]
-    outside_angle = np.arcsin((p[2] - circle_center[2]) / circle_radius)
+    p = upper_points[0]
+    upper_angle = np.arcsin((p[2] - circle_center[2]) / circle_radius)
 
-    return inside_angle, outside_angle
+    return lower_angle, upper_angle
 
 def main():
     args = sys.argv
     ax = float(args[1]) #[rad]
     ay = float(args[2]) #[rad]
-    inside_angle, outside_angle = calc_ankle_angle(ax, ay)
+    lower_angle, upper_angle = calc_ankle_angle(ax, ay)
 
-    print(inside_angle, outside_angle)
+    print("j5:", upper_angle, "j6:", lower_angle)
 
 if __name__ == '__main__':
     main()

@@ -1,8 +1,16 @@
+import argparse
 import re
 import matplotlib.pyplot as plt
 
-# ログファイル名
-log_file = "/home/kenji/g_vec_1.log"
+parser = argparse.ArgumentParser(
+    description="Plot gravity_b from log file")
+parser.add_argument(
+    "csv_file",
+    help="CSV file path"
+)
+
+args = parser.parse_args()
+log_file = args.csv_file
 
 # データ格納用
 gx = []
