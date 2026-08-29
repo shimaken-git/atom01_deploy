@@ -140,10 +140,10 @@ def main():
         for motor_info in motors:
             result = calibrate_motor(motor_info)
             if result:
-                print(f"motor id {motor_info['motor_id']} found!")
+                print(f"motor id {motor_info['motor_id']} \033[32mfound!\033[0m")
                 found.append(motor_info['motor_id'])
             else:
-                print(f"motor id {motor_info['motor_id']} not found!")
+                print(f"motor id {motor_info['motor_id']} \033[31mnot found!\033[0m")
                 not_fount.append(motor_info['motor_id'])
     except KeyboardInterrupt:
         print("\n\nユーザーによって中断")
